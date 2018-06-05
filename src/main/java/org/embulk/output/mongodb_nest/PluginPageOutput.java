@@ -111,7 +111,7 @@ public class PluginPageOutput implements TransactionalPageOutput
 				}
 			}
 
-			if (task.getChild() != null)
+			if (task.getChild().isPresent())
 			{
 				doc = transformDocument(doc);
 			}
