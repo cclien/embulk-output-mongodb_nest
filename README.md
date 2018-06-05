@@ -83,4 +83,8 @@ out:
 ```
 
 
+## Release
+* 0.1.1 2018-06-05 [bug fix] When the optional 'child' field is not set, error fixed 
+* 0.1.0 2018-05-31 first release 
+
 
