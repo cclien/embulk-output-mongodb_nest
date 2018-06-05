@@ -1,4 +1,4 @@
-# Mongodb Nest output plugin for Embulk
+# Mongodb output plugin for Embulk
 
 input source중에 지정된 필드를 subdocument로 만들어서 몽고DB로 저장한다
 
