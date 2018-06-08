@@ -20,7 +20,7 @@ Dumps records to Mongodb with subdocument
 - **user**: mongodb account (string, required)
 - **password**: password (string, required)
 - **collection**: collection name (string, required)
-- **key**: primary key of collection (string, required)
+- **key**: primary keys of collection (string array, required, **since v0.1.2**)
 - **child**: describe subdocument  (object list, default: null)
 - **bulk_size**: bulk upsert size at time (integer, default: `10000`)
 
@@ -36,7 +36,7 @@ out:
   user: your-account-name
   password: your-password
   collection: your-collection-name
-  key: your-key
+  key: [your-key1, key2, ...]
   child:
   - {name: mychild, field: time}
   - {name: yourchild, field: comment}
@@ -75,7 +75,7 @@ out:
   user: your-account-name
   password: your-password
   collection: your-collection-name
-  key: your-key
+  key: [your-key, key2]
   child:
   - {name: mychild, field: time}
   - {name: yourchild, field: comment}
@@ -84,7 +84,8 @@ out:
 
 
 ## Release
-* 0.1.1 2018-06-05 [bug fix] When the optional 'child' field is not set, error fixed 
-* 0.1.0 2018-05-31 first release 
+* 0.1.2 2018-06-08 The key field has been changed to a list type. The JSON Parser is supported by the input plugin.
+* 0.1.1 2018-06-05 [bug fix] Fiexed an error when a child field was entered
+* 0.1.0 2018-05-31 first release
 
 

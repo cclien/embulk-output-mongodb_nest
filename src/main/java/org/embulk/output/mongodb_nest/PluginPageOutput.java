@@ -8,6 +8,7 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.ReplaceOneModel;
 import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.model.WriteModel;
+import org.bson.BSONObject;
 import org.bson.Document;
 import org.embulk.config.TaskReport;
 import org.embulk.spi.*;
@@ -17,7 +18,6 @@ import org.slf4j.Logger;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -42,6 +42,7 @@ public class PluginPageOutput implements TransactionalPageOutput
 	private MongoClient               mongo;
 	private MongoDatabase             db;
 	private MongoCollection<Document> collection;
+
 
 	PluginPageOutput(MongodbNestOutputPlugin.PluginTask task, Schema schema)
 	{
@@ -71,7 +72,8 @@ public class PluginPageOutput implements TransactionalPageOutput
 		this.collection = this.db.getCollection(task.getCollection());
 	}
 
-	@Override public void add(Page page)
+	@Override
+	public void add(Page page)
 	{
 		pageReader.setPage(page);
 		List<WriteModel<Document>> replaceModel = new ArrayList<>();
@@ -88,6 +90,10 @@ public class PluginPageOutput implements TransactionalPageOutput
 				if (pageReader.isNull(i))
 				{
 					doc.append(t, null);
+				}
+				else if(schema.getColumnType(i).getName().compareTo("json") == 0)
+				{
+					doc.putAll((BSONObject) BasicDBObject.parse(pageReader.getJson(i).toJson()));
 				}
 				else if (type.equals(boolean.class))
 				{
@@ -109,6 +115,7 @@ public class PluginPageOutput implements TransactionalPageOutput
 				{
 					doc.append(t, new java.sql.Timestamp(pageReader.getTimestamp(i).toEpochMilli()));
 				}
+
 			}
 
 			if (task.getChild().isPresent())
@@ -117,10 +124,9 @@ public class PluginPageOutput implements TransactionalPageOutput
 			}
 
 			replaceModel.add(new ReplaceOneModel<>(
-					new Document(task.getKey(), doc.get(task.getKey())),
+					generateFilter(doc),
 					new Document(doc),
-					new ReplaceOptions().upsert(true))
-			);
+					new ReplaceOptions().upsert(true)));
 
 			if(replaceModel.size() % task.getBulkSize() == 0)
 			{
@@ -133,7 +139,18 @@ public class PluginPageOutput implements TransactionalPageOutput
 		{
 			collection.bulkWrite(replaceModel);
 		}
+	}
 
+	private Document generateFilter(BasicDBObject document)
+	{
+		Document filter = new Document();
+
+		for(String k : task.getKey())
+		{
+			filter.append(k, document.get(k));
+		}
+
+		return filter;
 	}
 
 	private BasicDBObject transformDocument(BasicDBObject doc)
@@ -158,22 +175,26 @@ public class PluginPageOutput implements TransactionalPageOutput
 		return doc;
 	}
 
-	@Override public void finish()
+	@Override
+	public void finish()
 	{
 
 	}
 
-	@Override public void close()
+	@Override
+	public void close()
 	{
 		this.mongo.close();
 	}
 
-	@Override public void abort()
+	@Override
+	public void abort()
 	{
 
 	}
 
-	@Override public TaskReport commit()
+	@Override
+	public TaskReport commit()
 	{
 		return null;
 	}

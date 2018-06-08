@@ -28,43 +28,43 @@ public class MongodbNestOutputPlugin implements OutputPlugin
 	public interface DefineChildDocument extends Task
 	{
 		@Config("name")
-		public String getName();
+		String getName();
 
 		@Config("field")
-		public String getField();
+		String getField();
 	}
 
 	public interface PluginTask extends Task
 	{
 		@Config("collection")
-		public String getCollection();
+		String getCollection();
 
 		@Config("host")
-		public String getHost();
+		String getHost();
 
 		@Config("port")
 		@ConfigDefault("27017")
-		public int getPort();
+		int getPort();
 
 		@Config("database")
-		public String getDatabase();
+		String getDatabase();
 
 		@Config("user")
-		public String getUser();
+		String getUser();
 
 		@Config("password")
-		public String getPassword();
+		String getPassword();
 
 		@Config("key")
-		public String getKey();
+		List<String> getKey();
 
 		@Config("child")
 		@ConfigDefault("null")
-		public Optional<List<DefineChildDocument>> getChild();
+		Optional<List<DefineChildDocument>> getChild();
 
 		@Config("bulk_size")
 		@ConfigDefault("1000")
-		public int getBulkSize();
+		int getBulkSize();
 
 	}
 
@@ -76,6 +76,9 @@ public class MongodbNestOutputPlugin implements OutputPlugin
 		// return resume(task.dump(), schema, taskCount, control);
 
 		// non-retryable (non-idempotent) output:
+
+		System.out.println(config.toString());
+
 		control.run(task.dump());
 		return Exec.newConfigDiff();
 	}
