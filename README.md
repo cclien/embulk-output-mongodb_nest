@@ -23,6 +23,14 @@ Dumps records to Mongodb with subdocument
 - **key**: primary keys of collection (string array, required, **since v0.1.2**)
 - **child**: describe subdocument  (object list, default: null)
 - **bulk_size**: bulk upsert size at time (integer, default: `10000`)
+- **null_value**: set the value to fill if the field value is null (object, optional, **since v0.1.3**)
+-- **string** : default string value (string, default: "")
+-- **long** : default long value (long, default: 0)
+-- **boolean** : default boolean value (boolean, default: false)
+-- **double** : default double value (double, default: 0.0)
+-- **json** : default json value (object, default: "{})
+-- **timestamp** : default timestamp value (timestamp, default : "1970-01-01T00:00:00.000Z")
+
 
 
 ## Example
@@ -41,6 +49,13 @@ out:
   - {name: mychild, field: time}
   - {name: yourchild, field: comment}
   - {name: mychild, field: purchase}
+  null_value:
+    string: ""
+    long: -1
+    json: {key: value}
+    boolean: false
+    double: 0.0
+    timestamp: "1970-01-01T00:00:00.000Z"
 ```
 
 * Embulk input csv sample configuration
@@ -80,10 +95,16 @@ out:
   - {name: mychild, field: time}
   - {name: yourchild, field: comment}
   - {name: mychild, field: purchase}
+  null_value:
+    string: ""
+    long: -1
+    json: {key: value}
+    timestamp: "1990-01-01T00:00:00.000Z"
 ```
 
 
 ## Release
+* 0.1.3 2018-06-25 set the value to fill if the field value is null
 * 0.1.2 2018-06-08 The key field has been changed to a list type. The JSON Parser is supported by the input plugin.
 * 0.1.1 2018-06-05 [bug fix] Fiexed an error when a child field was entered
 * 0.1.0 2018-05-31 first release

@@ -8,6 +8,7 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.ReplaceOneModel;
 import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.model.WriteModel;
+import org.bson.BSON;
 import org.bson.BSONObject;
 import org.bson.Document;
 import org.embulk.config.TaskReport;
@@ -87,33 +88,31 @@ public class PluginPageOutput implements TransactionalPageOutput
 				String t = schema.getColumnName(i);
 				Class<?> type = schema.getColumnType(i).getJavaType();
 
-				if (pageReader.isNull(i))
+				boolean isnull = pageReader.isNull(i);
+
+				if(schema.getColumnType(i).getName().compareTo("json") == 0)
 				{
-					doc.append(t, null);
-				}
-				else if(schema.getColumnType(i).getName().compareTo("json") == 0)
-				{
-					doc.putAll((BSONObject) BasicDBObject.parse(pageReader.getJson(i).toJson()));
+					doc.putAll(isnull ? task.getNullValue().get().getJson() : (BSONObject) BasicDBObject.parse(pageReader.getJson(i).toJson()));
 				}
 				else if (type.equals(boolean.class))
 				{
-					doc.append(t, pageReader.getBoolean(i));
+					doc.append(t, isnull ? task.getNullValue().get().getBoolean() : pageReader.getBoolean(i));
 				}
 				else if (type.equals(double.class))
 				{
-					doc.append(t, pageReader.getDouble(i));
+					doc.append(t, isnull ? task.getNullValue().get().getDouble() : pageReader.getDouble(i));
 				}
 				else if (type.equals(long.class))
 				{
-					doc.append(t, pageReader.getLong(i));
+					doc.append(t, isnull ? task.getNullValue().get().getLong() : pageReader.getLong(i));
 				}
 				else if (type.equals(String.class))
 				{
-					doc.append(t, pageReader.getString(i));
+					doc.append(t, isnull ? task.getNullValue().get().getString() : pageReader.getString(i));
 				}
 				else if (type.equals(Timestamp.class))
 				{
-					doc.append(t, new java.sql.Timestamp(pageReader.getTimestamp(i).toEpochMilli()));
+					doc.append(t, isnull ? task.getNullValue().get().getTimestamp() : new java.sql.Timestamp(pageReader.getTimestamp(i).toEpochMilli()));
 				}
 
 			}

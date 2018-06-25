@@ -1,15 +1,20 @@
 package org.embulk.output.mongodb_nest;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.util.ContextInitializer;
+import ch.qos.logback.core.util.StatusPrinter;
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import org.embulk.config.Config;
-import org.embulk.config.ConfigDefault;
-import org.embulk.config.ConfigDiff;
-import org.embulk.config.ConfigSource;
-import org.embulk.config.Task;
-import org.embulk.config.TaskReport;
-import org.embulk.config.TaskSource;
+import com.google.common.base.Supplier;
+import com.mongodb.BasicDBObject;
+import org.embulk.config.*;
 import org.embulk.spi.*;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nullable;
 
 /**
  * <pre>
@@ -32,6 +37,33 @@ public class MongodbNestOutputPlugin implements OutputPlugin
 
 		@Config("field")
 		String getField();
+	}
+
+	public interface DefineNullValue extends Task
+	{
+		@Config("string")
+		@ConfigDefault("")
+		String getString();
+
+		@Config("json")
+		@ConfigDefault("{}")
+		BasicDBObject getJson();
+
+		@Config("boolean")
+		@ConfigDefault("false")
+		Boolean getBoolean();
+
+		@Config("double")
+		@ConfigDefault("0.0")
+		Double getDouble();
+
+		@Config("long")
+		@ConfigDefault("0")
+		Integer getLong();
+
+		@Config("timestamp")
+		@ConfigDefault("0")
+		java.sql.Timestamp getTimestamp();
 	}
 
 	public interface PluginTask extends Task
@@ -63,8 +95,12 @@ public class MongodbNestOutputPlugin implements OutputPlugin
 		Optional<List<DefineChildDocument>> getChild();
 
 		@Config("bulk_size")
-		@ConfigDefault("1000")
+		@ConfigDefault("10000")
 		int getBulkSize();
+
+		@Config("null_value")
+		@ConfigDefault("{\"string\": \"\", \"boolean\":\"false\"}")
+		Optional<DefineNullValue> getNullValue();
 
 	}
 
@@ -77,7 +113,21 @@ public class MongodbNestOutputPlugin implements OutputPlugin
 
 		// non-retryable (non-idempotent) output:
 
-		System.out.println(config.toString());
+		logger.debug(task.toString());
+
+		TimeZone timeZone = TimeZone.getTimeZone("UTC");
+		Calendar calendar = Calendar.getInstance(timeZone);
+		SimpleDateFormat simpleDateFormat =
+				new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z' zzz", Locale.KOREA);
+		simpleDateFormat.setTimeZone(timeZone);
+
+		logger.info("* setup null value");
+		logger.info("  String value    = \"{}\"", task.getNullValue().get().getString());
+		logger.info("  Long value      = {}", task.getNullValue().get().getLong());
+		logger.info("  Timestamp value = {}", simpleDateFormat.format(task.getNullValue().get().getTimestamp()));
+		logger.info("  Boolean value   = {}", task.getNullValue().get().getBoolean());
+		logger.info("  Double value    = {}", task.getNullValue().get().getDouble());
+		logger.info("  Json value      = {}", task.getNullValue().get().getJson());
 
 		control.run(task.dump());
 		return Exec.newConfigDiff();
@@ -95,6 +145,7 @@ public class MongodbNestOutputPlugin implements OutputPlugin
 	@Override public TransactionalPageOutput open(TaskSource taskSource, Schema schema, int taskIndex)
 	{
 		PluginTask task = taskSource.loadTask(PluginTask.class);
+
 
 		return new PluginPageOutput(task, schema);
 	}
