@@ -67,6 +67,8 @@ public class PluginPageOutput implements TransactionalPageOutput
 		}
 
 		connectionStr += task.getHost() + ":" + task.getPort() + "/" + task.getDatabase();
+		if (task.getSsl() )
+			connectionStr += "?streamType=netty&ssl=true";
 
 		this.mongo = MongoClients.create(connectionStr);
 		this.db = this.mongo.getDatabase(task.getDatabase());

@@ -16,6 +16,7 @@ Dumps records to Mongodb with subdocument
 * **type**: mongodb_nest (string, required)
 * **host**: host name (string, required)
 * **port**: port number (integer, default: `27017`)
+* **ssl** enable SSL connection (boolean, default: false)
 * **database**: database name (string, required)
 * **user**: mongodb account (string, required)
 * **password**: password (string, required)
