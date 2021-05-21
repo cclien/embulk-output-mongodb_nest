@@ -78,6 +78,10 @@ public class MongodbNestOutputPlugin implements OutputPlugin
 		@ConfigDefault("27017")
 		int getPort();
 
+		@Config("ssl")
+		@ConfigDefault("false")
+		boolean getSsl();
+
 		@Config("database")
 		String getDatabase();
 
