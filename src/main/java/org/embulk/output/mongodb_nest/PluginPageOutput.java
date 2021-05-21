@@ -8,6 +8,7 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.ReplaceOneModel;
 import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.model.WriteModel;
+import com.mongodb.util.JSON;
 import org.bson.BSON;
 import org.bson.BSONObject;
 import org.bson.Document;
@@ -94,7 +95,7 @@ public class PluginPageOutput implements TransactionalPageOutput
 
 				if(schema.getColumnType(i).getName().compareTo("json") == 0)
 				{
-					doc.putAll(isnull ? task.getNullValue().get().getJson() : (BSONObject) BasicDBObject.parse(pageReader.getJson(i).toJson()));
+					doc.put(t,isnull ? task.getNullValue().get().getJson() : (BSONObject) JSON.parse(pageReader.getJson(i).toJson()) );
 				}
 				else if (type.equals(boolean.class))
 				{
